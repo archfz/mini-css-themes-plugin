@@ -19,7 +19,7 @@ class MiniCssThemesWebpackPlugin {
     }
 
     Object.entries(themes).forEach(([themeKey, file]) => {
-      const fullPath = path.resolve(__dirname, file);
+      const fullPath = path.resolve(file);
       if (!fs.existsSync(fullPath)) {
         throw new Error(`Theme '${themeKey}' file not found: ${fullPath}`);
       }
@@ -161,4 +161,4 @@ class MiniCssThemesWebpackPlugin {
   }
 }
 
-exports.default = MiniCssThemesWebpackPlugin;
+module.exports = MiniCssThemesWebpackPlugin;
