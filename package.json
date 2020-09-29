@@ -1,0 +1,29 @@
+{
+  "name": "mini-css-themes-plugin",
+  "version": "0.1.0",
+  "description": "Webpack plugin to generate separate themes for css modules.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "https://github.com/archfz/mini-css-themes-plugin",
+  "keywords": [
+    "webpack",
+    "plugin",
+    "themes",
+    "css",
+    "modules",
+    "chunks",
+    "switch",
+    "style"
+  ],
+  "author": "fodor18zoltan@gmail.com",
+  "license": "MIT",
+  "peerDependencies": {
+    "webpack": "^4.4.0 || ^5.0.0",
+    "mini-css-extract-plugin": "^0.9.0"
+  },
+  "dependencies": {
+    "loader-utils": "^2.0.0"
+  }
+}
