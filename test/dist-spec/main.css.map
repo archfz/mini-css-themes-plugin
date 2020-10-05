@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack://Main/src/ThemedComponent.scss","webpack://Main/themes/default.scss"],"names":[],"mappings":"AAEA,+BACE,kBCHW,C","file":"main.css","sourcesContent":["@import \"../themes/default\";\n\n.root {\n  background: $background;\n}\n","$background: #dedede;\n"],"sourceRoot":""}
