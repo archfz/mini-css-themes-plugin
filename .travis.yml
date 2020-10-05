@@ -6,4 +6,6 @@ cache:
 
 script:
   - npm ci
+  - cd test
+  - npm ci
   - npm test
