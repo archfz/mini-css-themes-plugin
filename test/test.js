@@ -3,9 +3,9 @@ const {expect} = require('chai');
 const fs = require('fs');
 const path = require('path');
 
-const runBuild = async (callback) => {
+const runBuild = async (args, callback) => {
   await new Promise(resolve => {
-    exec('npm run build', (error, stdout, stderr) => {
+    exec(`npm run build -- ${args}`, (error, stdout, stderr) => {
       if (stderr) {
         console.error(stderr);
       }
@@ -21,18 +21,26 @@ const runBuild = async (callback) => {
 };
 
 describe('mini-css-themes-plugin', () => {
+  const assertBuildFiles = (specDir) => {
+    const specFiles = fs.readdirSync(specDir);
+    specFiles.forEach((specFile) => {
+      const specFilePath = path.join(__dirname, specDir, specFile);
+      const actualFilePath = path.join(__dirname, './dist', specFile);
 
-  it('Should compile themes correctly.', async () => {
-    await runBuild((error, stdout, stderr) => {
-      const specFiles = fs.readdirSync('./dist-spec');
-      specFiles.forEach((specFile) => {
-        const specFilePath = path.join(__dirname, './dist-spec', specFile);
-        const actualFilePath = path.join(__dirname, './dist', specFile);
+      expect(fs.existsSync(actualFilePath)).to.be.true;
+      expect(fs.readFileSync(actualFilePath).toString()).to.eq(fs.readFileSync(specFilePath).toString());
+    });
+  };
 
-        expect(fs.existsSync(actualFilePath)).to.be.true;
-        expect(fs.readFileSync(actualFilePath).toString()).to.eq(fs.readFileSync(specFilePath).toString());
-      });
+  it('Should compile single entry themes correctly.', async () => {
+    await runBuild('', () => {
+      assertBuildFiles('./dist-spec-single-entries');
     });
   }).timeout(60000);
 
+  it('Should compile multi entry themes with composes switches correctly.', async () => {
+    await runBuild('--multi-entries', () => {
+      assertBuildFiles('./dist-spec-multi-entries');
+    });
+  }).timeout(60000);
 });

@@ -1,13 +1,13 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("React"), require("ReactDOM"));
+		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define(["React", "ReactDOM"], factory);
+		define([], factory);
 	else if(typeof exports === 'object')
-		exports["Main"] = factory(require("React"), require("ReactDOM"));
+		exports["Main"] = factory();
 	else
-		root["Main"] = factory(root["React"], root["ReactDOM"]);
-})(window, function(__WEBPACK_EXTERNAL_MODULE__0__, __WEBPACK_EXTERNAL_MODULE__1__) {
+		root["Main"] = factory();
+})(window, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -91,68 +91,33 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE__0__;
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE__1__;
-
-/***/ }),
-/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
 module.exports = {"root":"ThemedComponent__root___1hUJX"};
 
 /***/ }),
-/* 3 */
+/* 1 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-// ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
-
-// EXTERNAL MODULE: external "React"
-var external_React_ = __webpack_require__(0);
-var external_React_default = /*#__PURE__*/__webpack_require__.n(external_React_);
-
-// EXTERNAL MODULE: external "ReactDOM"
-var external_ReactDOM_ = __webpack_require__(1);
-var external_ReactDOM_default = /*#__PURE__*/__webpack_require__.n(external_ReactDOM_);
-
-// EXTERNAL MODULE: ./src/ThemedComponent.scss
-var src_ThemedComponent = __webpack_require__(2);
-var ThemedComponent_default = /*#__PURE__*/__webpack_require__.n(src_ThemedComponent);
-
-// CONCATENATED MODULE: ./src/ThemedComponent.jsx
+/* harmony import */ var _ThemedComponent_scss__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var _ThemedComponent_scss__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_ThemedComponent_scss__WEBPACK_IMPORTED_MODULE_0__);
 
 
-var ThemedComponent_ThemedComponent = function ThemedComponent() {
+var ThemedComponent = function ThemedComponent() {
   return /*#__PURE__*/React.createElement("div", {
-    className: ThemedComponent_default.a.root
+    className: _ThemedComponent_scss__WEBPACK_IMPORTED_MODULE_0___default.a.root
   }, "APP");
 };
 
-/* harmony default export */ var src_ThemedComponent_0 = (ThemedComponent_ThemedComponent);
-// CONCATENATED MODULE: ./src/index.jsx
-
-
-
-
-var src_App = function App() {
-  return /*#__PURE__*/external_React_default.a.createElement(src_ThemedComponent_0, null);
-};
-
-external_ReactDOM_default.a.render( /*#__PURE__*/external_React_default.a.createElement(src_App, null), document.getElementById('root'));
+/* harmony default export */ __webpack_exports__["default"] = (ThemedComponent);
 
 /***/ })
 /******/ ]);
