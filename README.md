@@ -70,7 +70,7 @@ Promise.all([
 
 ## Limitations
 
-You must use the theme imports only in css modules. So for example the following is not 
+1. You must use the theme imports only in css modules. So for example the following is not 
 possible since the plugin cannot detect the theme import and do the switch.
 
 ```sass
@@ -85,3 +85,8 @@ possible since the plugin cannot detect the theme import and do the switch.
 @import './path/to/theme_one/theme.scss'
 $myOtherVar: $themeVar1 + $themeVar2
 ```
+
+2. Currently the plugin won't include plain `.css` imports from your sources or from under
+node modules into the separate themes. Since these are not themable anyway it is advised
+to separate this css imports in their own files (common chunks) and then load them for all 
+themes. This is good for caching and theme file size overall.

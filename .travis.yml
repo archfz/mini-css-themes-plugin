@@ -1,0 +1,11 @@
+language: node
+
+cache:
+  directories:
+    - ./npm
+
+script:
+  - npm ci
+  - cd test
+  - npm ci
+  - npm test
