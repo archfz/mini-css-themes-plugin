@@ -4,9 +4,38 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssThemesWebpackPlugin = require('..');
 const ManifestPlugin = require('webpack-manifest-plugin');
 
+let plugin;
+
+if (process.argv.indexOf('--multi-entries') !== -1) {
+  process.env.MULTI_ENTRIES = true;
+  plugin = new MiniCssThemesWebpackPlugin({
+    themes: {
+      default: {
+        main: './themes/default.scss',
+        composers: './themes/default_composers.scss'
+      },
+      dark: {
+        main: './themes/dark.scss',
+        composers: './themes/dark_composers.scss'
+      },
+    },
+    defaultTheme: 'default'
+  });
+} else {
+  plugin = new MiniCssThemesWebpackPlugin({
+    themes: {
+      default: './themes/default.scss',
+      dark: './themes/dark.scss',
+    },
+    defaultTheme: 'default'
+  });
+}
+
 module.exports = {
   entry: {
-    "main": path.resolve(__dirname, './src/index.jsx'),
+    "main": process.env.MULTI_ENTRIES
+      ? path.resolve(__dirname, './src/ThemedComponentMultiEntries.jsx')
+      : path.resolve(__dirname, './src/ThemedComponent.jsx'),
   },
   devtool: 'source-map',
   output: {
@@ -89,12 +118,6 @@ module.exports = {
     new ManifestPlugin(),
     new MiniCssExtractPlugin({ filename: "[name].css" }),
     new CleanWebpackPlugin(),
-    new MiniCssThemesWebpackPlugin({
-      themes: {
-        default: './themes/default.scss',
-        dark: './themes/dark.scss',
-      },
-      defaultTheme: 'default'
-    })
+    plugin
   ]
 };

@@ -18,11 +18,36 @@ class MiniCssThemesWebpackPlugin {
       throw new Error(`Default theme '${defaultTheme}' missing from themes definition.`);
     }
 
-    Object.entries(themes).forEach(([themeKey, file]) => {
-      const fullPath = path.resolve(file);
+    const areThemesSingleEntry = typeof themes[defaultTheme] === 'string';
+    const themeEntryKeys = areThemesSingleEntry ? [] : Object.keys(themes[defaultTheme]);
+
+    const validateThemeFile = (themePath, themeKey, entry = null) => {
+      const fullPath = path.resolve(themePath);
       if (!fs.existsSync(fullPath)) {
-        throw new Error(`Theme '${themeKey}' file not found: ${fullPath}`);
+        throw new Error(`Theme '${entry ? `${themeKey}.${entry}` : themeKey}' file not found: ${fullPath}`);
       }
+    };
+
+    Object.entries(themes).forEach(([themeKey, fileOrFilesObject]) => {
+      if (areThemesSingleEntry) {
+        if (typeof fileOrFilesObject !== 'string') {
+          throw new Error(`All themes value must be a string (path to theme file) as the default theme is also string.`);
+        }
+        return validateThemeFile(fileOrFilesObject, themeKey);
+      }
+
+      if (typeof fileOrFilesObject !== 'object') {
+        throw new Error(`Themes value must be either object or string.`);
+      }
+
+      const currentThemeEntryKeys = Object.keys(fileOrFilesObject);
+      if (currentThemeEntryKeys.length !== themeEntryKeys.length || themeEntryKeys.filter((k) => !currentThemeEntryKeys.includes(k)).length) {
+        throw new Error(`Missing or additional theme entries in '${themeKey}'. All themes must match schema of default theme.`);
+      }
+
+      Object.entries(fileOrFilesObject).forEach(([entry, path]) => {
+        validateThemeFile(path, themeKey, entry);
+      });
     });
   }
 
@@ -32,12 +57,23 @@ class MiniCssThemesWebpackPlugin {
     this.defaultTheme = defaultTheme;
     this.chunkPrefix = chunkPrefix || 'theme__';
 
-    this.defaultImportFilename = path.basename(this.themes[this.defaultTheme]).replace(/\.[a-zA-Z0-9]+$/, '');
     this.nonDefaultThemeKeys = Object.keys(this.themes).filter(t => t !== this.defaultTheme);
     this.themeChunkNames = this.nonDefaultThemeKeys.map(theme => `${this.chunkPrefix}${theme}`);
 
-    this.absolutePathThemes = {};
-    Object.entries(themes).forEach(([key, themePath]) => this.absolutePathThemes[key] = path.resolve(themePath));
+    const areThemesSingleEntry = typeof themes[defaultTheme] === 'string';
+    this.absoluteThemePaths = {};
+
+    Object.entries(themes).forEach(([key, fileOrFilesObject]) => {
+      if (areThemesSingleEntry) {
+        this.absoluteThemePaths[key] = [path.resolve(fileOrFilesObject)];
+      } else {
+        this.absoluteThemePaths[key] = Object.entries(fileOrFilesObject)
+          .sort((a, b) => a.key > b.key ? -1 : 1)
+          .reduce((reduced, [,current]) =>  reduced.push(current) && reduced, []);
+      }
+    });
+
+    this.defaultImportFilenames = this.absoluteThemePaths[this.defaultTheme].map((themePath) => path.basename(themePath).replace(/\.[a-zA-Z0-9]+$/, ''));
   }
 
   apply(compiler) {
@@ -92,9 +128,9 @@ class MiniCssThemesWebpackPlugin {
           module.loaders.push({
             loader: require.resolve('./loader.js'),
             options: {
-              defaultImportFilename: this.defaultImportFilename,
-              defaultImportPath: this.absolutePathThemes[this.defaultTheme],
-              targetImportPath: this.absolutePathThemes[theme[1]],
+              defaultImportFilenames: this.defaultImportFilenames,
+              defaultImportPaths: this.absoluteThemePaths[this.defaultTheme],
+              targetImportPaths: this.absoluteThemePaths[theme[1]],
             }
           });
         }

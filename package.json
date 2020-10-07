@@ -1,10 +1,10 @@
 {
   "name": "mini-css-themes-plugin",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Webpack plugin to generate separate themes for css modules.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cd test && npm run test"
   },
   "repository": "https://github.com/archfz/mini-css-themes-plugin",
   "keywords": [
