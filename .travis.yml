@@ -6,6 +6,7 @@ cache:
 
 script:
   - npm ci
+  - npm i css-loader
   - cd test
   - npm ci
   - npm test

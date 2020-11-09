@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const loaderUtils = require('loader-utils');
 
 class MiniCssThemesWebpackPlugin {
   constructor(config) {
@@ -134,6 +135,73 @@ class MiniCssThemesWebpackPlugin {
             }
           });
         }
+      });
+    });
+
+    // Make sure to not generate different hashes for classes loaded from
+    // theme files as composes.
+    compiler.hooks.environment.tap(this.pluginName, () => {
+      const fileToThemeFileTypeMap = {};
+      const classNamesPerThemeFileTypes = {};
+
+      Object.entries(this.themes).forEach(([_, fileOrFiles]) => {
+        if (typeof fileOrFiles === 'string') {
+          fileToThemeFileTypeMap[fileOrFiles] = 'default';
+        } else {
+          Object.entries(fileOrFiles).forEach(([type, file]) => {
+            fileToThemeFileTypeMap[path.resolve(file)] = type;
+          });
+        }
+      });
+
+      compiler.options.module.rules.forEach((rule) => {
+        (Array.isArray(rule.use) ? rule.use : [rule.use])
+          .filter((loader) => loader.loader === 'css-loader' && loader.options && loader.options.modules)
+          .forEach((loader) => {
+            const isCssLoaderOldVersion = typeof loader.options.modules === 'boolean';
+            let originalGetLocalIdent;
+
+            if (isCssLoaderOldVersion) {
+              originalGetLocalIdent = loader.options.getLocalIdent || require('css-loader/dist/utils').getLocalIdent;
+            } else {
+              originalGetLocalIdent = loader.options.modules.getLocalIdent || ((loaderContext, localIdentName, localName, options) =>{
+                const {context, hashPrefix} = options;
+                const {resourcePath} = loaderContext;
+                const request = path.relative(context, resourcePath);
+
+                options.content = `${hashPrefix + request}\x00${localName}`;
+                return loaderUtils.interpolateName(loaderContext, localIdentName, options)
+                  .replace(/\[local]/gi, localName);
+              });
+            }
+
+            const getLocalIdent = (...args) => {
+              const [module,,className] = args;
+              const themeFileType = fileToThemeFileTypeMap[module.resourcePath];
+              const hasClassName = themeFileType
+                && classNamesPerThemeFileTypes[themeFileType]
+                && classNamesPerThemeFileTypes[themeFileType][className];
+
+              if (hasClassName) {
+                return classNamesPerThemeFileTypes[themeFileType][className];
+              }
+
+              const ident = originalGetLocalIdent(...args);
+
+              if (!hasClassName && themeFileType) {
+                classNamesPerThemeFileTypes[themeFileType] = classNamesPerThemeFileTypes[themeFileType] || {};
+                classNamesPerThemeFileTypes[themeFileType][className] = ident;
+              }
+
+              return ident;
+            };
+
+            if (isCssLoaderOldVersion) {
+              loader.options.getLocalIdent = getLocalIdent;
+            } else {
+              loader.options.modules.getLocalIdent = getLocalIdent;
+            }
+          });
       });
     });
 

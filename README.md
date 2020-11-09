@@ -68,6 +68,42 @@ Promise.all([
 });
 ```
 
+## Themable composes
+
+Using `composes` with switchable themes is supported, but not recommended as it will
+slow down unnecessarily the compilation. Prefer extracting components instead of
+relying on `composes`.
+
+It is recommended to separate all classes that get composed in a separate file in 
+order to avoid bloating the css modules with many unused classes. This means that
+one needs to have multiple entry points per theme. Here is an example how to do this:
+
+In webpack config:
+```js
+new MiniCssThemesWebpackPlugin({
+    themes: {
+        'theme_one': {
+          default: './path/to/theme_one/theme.scss',
+          composes: './path/to/theme_one/composes.scss'
+        },
+        'theme_two': {
+          default: './path/to/theme_two/theme.scss',
+          composes: './path/to/theme_one/composes.scss'
+        },
+    },
+    defaultTheme: 'theme_one'
+});
+```
+
+Then in css modules using composes.
+```scss
+@import './path/to/theme_one/theme.scss';
+
+.composed {
+  composes: someClass from './path/to/theme_one/composes.scss';
+}
+```
+
 ## Limitations
 
 1. You must use the theme imports only in css modules. So for example the following is not 
@@ -80,8 +116,8 @@ possible since the plugin cannot detect the theme import and do the switch.
 
 ```sass
 // ./something/not/from/the/theme.scss
-// This import won't be switched when generating the themes and will remain the
-// same values in all themes.
+// This import won't be switched when generating the themes and the values below
+//  will remain the same for all themes.
 @import './path/to/theme_one/theme.scss'
 $myOtherVar: $themeVar1 + $themeVar2
 ```

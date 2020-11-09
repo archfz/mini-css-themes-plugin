@@ -28,7 +28,8 @@ describe('mini-css-themes-plugin', () => {
       const actualFilePath = path.join(__dirname, './dist', specFile);
 
       expect(fs.existsSync(actualFilePath)).to.be.true;
-      expect(fs.readFileSync(actualFilePath).toString()).to.eq(fs.readFileSync(specFilePath).toString());
+      expect(fs.readFileSync(actualFilePath).toString().replace(/\n$/, ''))
+        .to.eq(fs.readFileSync(specFilePath).toString().replace(/\n$/, ''));
     });
   };
 
