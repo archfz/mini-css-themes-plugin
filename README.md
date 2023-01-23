@@ -126,3 +126,9 @@ $myOtherVar: $themeVar1 + $themeVar2
 node modules into the separate themes. Since these are not themable anyway it is advised
 to separate this css imports in their own files (common chunks) and then load them for all 
 themes. This is good for caching and theme file size overall.
+
+## Release notes
+
+#### 1.0.0-beta.0
+
+- Add support for webpack 5.

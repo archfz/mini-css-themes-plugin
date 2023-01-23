@@ -82,26 +82,58 @@ class MiniCssThemesWebpackPlugin {
       this.themeChunkNames.find(c => chunk.chunkReason && chunk.chunkReason.indexOf(`(cache group: ${c})`) !== -1)
     );
 
+    this.themedModules = [];
+
+    const findSassDependencies = (module) => module.dependencies.filter(dep => dep.request && dep.request.match(/\.scss$/));
+    const cloneDependencyForTheme = (theme, dep) => {
+      const cloneDependency = Object.assign(Object.create(Object.getPrototypeOf(dep)), dep);
+      // Mark for which theme we are cloning the sass dependency.
+      cloneDependency.themed = theme;
+      // Need to modify the identifier so that it is recorded as a separate dependency.
+      // Otherwise webpack will consider them the same deps and not attempt creating
+      // different modules for them.
+      const oldGetResourceIdentifier = cloneDependency.getResourceIdentifier.bind(cloneDependency);
+      cloneDependency.getResourceIdentifier = () => oldGetResourceIdentifier() + `?theme=${theme}`;
+      return cloneDependency;
+    };
+
+    const themeSassDependencies = (module) => {
+      findSassDependencies(module).forEach((dep) => {
+        this.nonDefaultThemeKeys.forEach(theme => {
+          const clone = cloneDependencyForTheme(theme, dep);
+          module.dependencies.push(clone);
+        });
+        this.themedModules.push(path.join(module.context, dep.request));
+      });
+    }
+
+    const transformSassDependencies = (module, theme) => {
+      findSassDependencies(module).forEach((dep) => {
+        const clone = cloneDependencyForTheme(theme, dep);
+        module.dependencies.splice(module.dependencies.indexOf(dep), 1);
+        module.dependencies.push(clone);
+      });
+    };
+
     compiler.hooks.thisCompilation.tap(this.pluginName, (compilation) => {
       // Finds import dependencies targeted to sass files and duplicates them for each theme.
       compilation.hooks.succeedModule.tap(this.pluginName, module => {
-        const findSassDependencies = () => module.dependencies.filter(dep => dep.request && dep.request.match(/\.scss$/));
+        // For modules that have been marked for theming we need to ensure to make their dependencies unique,
+        // since otherwise webpack will not include these dependencies in the themed version as well.
+        let theme;
+        if (module.request && (theme = module.request.match(/\?\?.*theme:([^:?!]+)/))) {
+          transformSassDependencies(module, theme[1]);
+          return;
+        }
 
-        const cloneDependencyForTheme = (theme, dep) => {
-          const cloneDependency = Object.assign(Object.create(Object.getPrototypeOf(dep)), dep);
-          // Mark for which theme we are cloning the sass dependency.
-          cloneDependency.themed = theme;
-          // Need to modify the identifier so that it is recorded as a separate dependency.
-          // Otherwise webpack will consider them the same deps and not attempt creating
-          // different modules for them.
-          const oldGetResourceIdentifier = cloneDependency.getResourceIdentifier.bind(cloneDependency);
-          cloneDependency.getResourceIdentifier = () => oldGetResourceIdentifier() + `?theme=${theme}`;
-          module.dependencies.push(cloneDependency);
-        };
+        // Prevent theming dependencies of already themed modules. Since the root module is already themed, the theme
+        // will apply accordingly in dependencies as well (?).
+        if (module.issuer && this.themedModules.indexOf(module.issuer.resource) !== -1) {
+          this.themedModules.push(module.resource);
+          return;
+        }
 
-        findSassDependencies().forEach((dep) => {
-          this.nonDefaultThemeKeys.forEach(theme => cloneDependencyForTheme(theme, dep));
-        });
+        themeSassDependencies(module);
       });
     });
 
@@ -124,7 +156,8 @@ class MiniCssThemesWebpackPlugin {
     compiler.hooks.beforeCompile.tap(this.pluginName, (params) => {
       params.normalModuleFactory.hooks.module.tap(this.pluginName, (module) => {
         const theme = module.request.match(/\?\?.*theme:([^:?!]+)/);
-        if (theme) {
+        const loaderPath = require.resolve('./loader.js');
+        if (theme && !module.loaders.find(l => l.loader === loaderPath)) {
           module.themed = theme[1];
           module.loaders.push({
             loader: require.resolve('./loader.js'),
@@ -210,15 +243,16 @@ class MiniCssThemesWebpackPlugin {
       compiler.options.optimization.splitChunks = compiler.options.optimization.splitChunks || {};
       compiler.options.optimization.splitChunks.cacheGroups = compiler.options.optimization.splitChunks.cacheGroups || {};
 
-      const getModuleReasonTheme = (module) => {
-        const moduleReason = module.reasons[0].module;
-        return moduleReason.themed || null;
+      const hasReasonTheme = (module, theme) => {
+        const actualTheme = module._identifier.match(/\?\?theme:([^:?!]+)/);
+        return actualTheme ? actualTheme[1] === theme : false;
       };
 
       const addThemeChunk = (themeKey) => {
         compiler.options.optimization.splitChunks.cacheGroups[`${this.chunkPrefix}${themeKey}`] = {
-          test: (m) => m.constructor.name === 'CssModule' && getModuleReasonTheme(m) === themeKey,
+          test: (m) => m.constructor.name === 'CssModule' && hasReasonTheme(m, themeKey),
           chunks: 'all',
+          name: (_module, chunks, name) => `${name}~${chunks.map(c => c.name).join('~')}`,
           enforce: true,
         };
       };

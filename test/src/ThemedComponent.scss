@@ -1,5 +1,6 @@
 @import "../themes/default";
 
 .root {
+  composes: custom_div from "../themes/some_composers.scss";
   background: $background;
 }

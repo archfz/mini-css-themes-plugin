@@ -2,11 +2,11 @@ const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssThemesWebpackPlugin = require('..');
-const ManifestPlugin = require('webpack-manifest-plugin');
+const {WebpackManifestPlugin} = require('webpack-manifest-plugin');
 
 let plugin;
 
-if (process.argv.indexOf('--multi-entries') !== -1) {
+if (process.env._TEST_TYPE === 'multi-entries') {
   process.env.MULTI_ENTRIES = true;
   plugin = new MiniCssThemesWebpackPlugin({
     themes: {
@@ -115,7 +115,7 @@ module.exports = {
     children: false
   },
   plugins: [
-    new ManifestPlugin(),
+    new WebpackManifestPlugin(),
     new MiniCssExtractPlugin({ filename: "[name].css" }),
     new CleanWebpackPlugin(),
     plugin

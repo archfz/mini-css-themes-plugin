@@ -3,9 +3,9 @@ const {expect} = require('chai');
 const fs = require('fs');
 const path = require('path');
 
-const runBuild = async (args, callback) => {
+const runBuild = async (testType, callback) => {
   await new Promise(resolve => {
-    exec(`npm run build -- ${args}`, (error, stdout, stderr) => {
+    exec(`_TEST_TYPE=${testType} npm run build`, (error, stdout, stderr) => {
       if (stderr) {
         console.error(stderr);
       }
@@ -40,7 +40,7 @@ describe('mini-css-themes-plugin', () => {
   }).timeout(60000);
 
   it('Should compile multi entry themes with composes switches correctly.', async () => {
-    await runBuild('--multi-entries', () => {
+    await runBuild('multi-entries', () => {
       assertBuildFiles('./dist-spec-multi-entries');
     });
   }).timeout(60000);
