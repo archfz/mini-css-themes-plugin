@@ -188,6 +188,11 @@ class MiniCssThemesWebpackPlugin {
       });
 
       compiler.options.module.rules.forEach((rule) => {
+        if (!rule.use) {
+          // @TODO: In certain cases css loader can be nested in mini css extract?
+          return;
+        }
+
         (Array.isArray(rule.use) ? rule.use : [rule.use])
           .filter((loader) => loader.loader === 'css-loader' && loader.options && loader.options.modules)
           .forEach((loader) => {
@@ -297,7 +302,12 @@ class MiniCssThemesWebpackPlugin {
         filterThemeChunks(chunks).forEach(chunk => {
           const nonCssAssets = chunk.files.filter(file => !file.match(/\.css$/));
           nonCssAssets.forEach(file => delete compilation.assets[file]);
-          chunk.files = chunk.files.filter(file => file.match(/\.css$/));
+
+          if (chunk.files instanceof Set) {
+            chunk.files = new Set(chunk.files.filter(file => file.match(/\.css$/)));
+          } else {
+            chunk.files = chunk.files.filter(file => file.match(/\.css$/));
+          }
         });
       });
     });

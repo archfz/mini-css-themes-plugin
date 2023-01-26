@@ -129,6 +129,10 @@ themes. This is good for caching and theme file size overall.
 
 ## Release notes
 
+#### 1.0.0-beta.1
+
+- Additional fixes for loader configurations and assets cleanup.
+
 #### 1.0.0-beta.0
 
 - Add support for webpack 5.
